@@ -1,0 +1,42 @@
+{% extends '::front.html.twig' %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('bundles/admin/css/style.css') }}" type="text/css" />
+{% endblock %}
+
+{% block contenu %}
+    <h1>
+        Modifier utilisateur - {{ utilisateur.username }}
+    </h1>
+    {{ form_start(form) }}
+    
+    {{ form_label(form.nom) }}
+    {{ form_widget(form.nom) }}
+    {{ form_label(form.email) }}
+    {{ form_widget(form.email) }}
+    {{ form_label(form.username) }}
+    {{ form_widget(form.username) }}
+    {{ form_label(form.password) }}
+    {{ form_widget(form.password, {'required': false}) }}
+    <label>Confirmer mot de passe</label>
+    <input type="password" name="confirmpwd" class="form-control" value="" />
+    <label class="required" for="type">Type</label>
+    <select id="type" name="type" class="form-control" required="required">
+        <option value="ROLE_ADMIN"{% if utilisateur.hasRole("ROLE_ADMIN") or utilisateur.hasRole("ROLE_SUPER_ADMIN") %} selected="selected"{% endif %}>ADMIN</option>
+        <option value="ROLE_USER"{% if not utilisateur.hasRole("ROLE_ADMIN") and not utilisateur.hasRole("ROLE_SUPER_ADMIN") %} selected="selected"{% endif %}>USER</option>
+    </select>
+    <label>
+        {% if app.user.id != utilisateur.id %}
+        {{ form_widget(form.enabled) }}
+        {% else %}
+        {{ form_widget(form.enabled, {'disabled': true}) }}
+        {% endif %}
+        Activé
+    </label>
+    
+    {{ form_rest(form) }}
+    <br />
+    <button type="submit" name="enregsitrer" class="btn btn-primary">Enregsitrer</button>
+    {{ form_end(form) }}
+{% endblock %}

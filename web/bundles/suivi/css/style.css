@@ -1,0 +1,52 @@
+h1 {
+    font-size: 20px;
+    font-weight: bold;
+    margin-top: 1px;
+}
+.form-control {
+    padding: 2px !important;
+}
+td.box {
+    position: relative;
+}
+.textAFloat {
+    background-color: #eee;
+    border: 1px solid #ddd;
+    padding: 4px;
+    position: absolute;
+    right: 10px;
+    top: 34px;
+    width: 500px;
+    z-index: 1;
+}
+.textAFloat textarea {
+    resize: vertical;
+}
+div.filtre {
+    background-color: #eee;
+    border-radius: 3px;
+    padding: 5px;
+}
+hr {
+    margin: 5px auto;
+}
+.cabinetInfos .popover {
+    max-width: none;
+    width: auto !important;
+}
+span.twitter-typeahead {
+    width: 100%;
+}
+div.tt-menu {
+    background-color: #eee;
+    font-size: 12px;
+    padding: 4px;
+    width: 100%;
+}
+div.tt-selectable {
+    cursor: pointer;
+    padding: 2px;
+}
+div.tt-selectable:hover {
+    background-color: #fff;
+}

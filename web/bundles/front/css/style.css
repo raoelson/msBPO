@@ -1,0 +1,12 @@
+a.navbar-brand {
+    color: #08c !important;
+    font-size: 31px;
+    font-weight: bold;
+    width: 250px;
+}
+a.navbar-brand img {
+    display: inline-block;
+    height: 50px;
+    position: absolute;
+    top: 0;
+}

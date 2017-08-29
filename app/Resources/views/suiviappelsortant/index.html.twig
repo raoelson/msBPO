@@ -1,0 +1,352 @@
+{% extends '::front.html.twig' %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('bundles/suivi/css/style.css') }}" type="text/css" />
+    <link rel="stylesheet" href="{{ asset('bundles/select2/select2.css') }}" type="text/css" />
+    <link rel="stylesheet" href="{{ asset('bundles/jquery/css/jquery-ui.css') }}" type="text/css" />
+{% endblock %}
+
+{% block contenu %}
+    {{ parent() }}
+    {% set idJournee = 0 %}
+    {% set hasCurrentUser = 0 %}
+    {% set hasOtherUser = 0 %}
+    {% set allValidated = 1 %}
+    {% for operation in operations %}
+        {% if operation.operateur.id and operation.operateur.id == app.user.id and 
+operation.journee.dateOperation == "now"|date('Y-m-d H:i:s') %}
+            {% set idJournee = operation.journee.id %}
+        {% else %}
+            {% set idJournee = operations[0].journee.id %}
+        {% endif %}
+            
+        {% if operation.operateur.id != app.user.id %}
+            {% set hasOtherUser = 1 %}
+            {% if not operation.controle %}
+                {% set allValidated = 0 %}
+            {% endif %}
+        {% endif %}
+    {% endfor %}
+    {# if operations|length %}
+        {% set idJournee = operations[0].journee.id %}
+    {% endif #}
+    <h1>
+        Expertise Auto {% if idJournee > 0 %}{{ operations[0].journee.dateOperation|date('d/m/Y') }}{% else %}{{ "now"|date('d/m/Y') }}{% endif %}
+    </h1>
+    <form name="suiviappelsortant" method="POST">
+        <input type="hidden" name="idJournee" class="idJournee" value="{{ idJournee }}" />
+        <div class="filtre form-inline">
+            <input type="text" id="filtre_date" name="filtre_date" class="form-control input-sm" placeholder="Date des opérations" value="{% if filtre.date is defined %}{{ filtre.date }}{% else %}{{ "now"|date("d/m/Y") }}{% endif %}" />
+            <select name="filtre_agent" class="form-control input-sm" placeholder="Agent">
+                <option value="0">Sélectionner un agent</option>
+                {% for agent in agents %}
+                    {% if not agent.hasRole('ROLE_SUPER_ADMIN') %}
+                        <option value="{{ agent.id }}"{% if filtre.agent is defined and filtre.agent == agent.id %} selected="selected"{% endif %}>{{ agent.username }}</option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+            {% if app.user.hasRole('ROLE_ADMIN') or app.user.hasRole('ROLE_SUPER_ADMIN') %}
+                <select name="filtre_cabinet" class="form-control input-sm" placeholder="Cabinet">
+                    <option value="0">Sélectionner un cabinet</option>
+                    {% for cabinet in cabinets %}
+                        <option value="{{ cabinet.id }}"{% if filtre.cabinet is defined and filtre.cabinet == cabinet.id %} selected="selected"{% endif %}>{{ cabinet.numero ~ " - " ~ cabinet.nom }}</option>
+                    {% endfor %}
+                </select>
+                <select name="filtre_garage" class="form-control input-sm" placeholder="Garage">
+                    <option value="0">Sélectionner un garage</option>
+                    {% for garage in garages %}
+                        <option value="{{ garage.id }}"{% if filtre.garage is defined and filtre.garage == garage.id %} selected="selected"{% endif %}>{{ garage.libelle }}</option>
+                    {% endfor %}
+                </select>
+            {% endif %}
+            <button name="filtrer_journee" type="submit" class="filtrer btn btn-default btn-sm" title="Filtrer" value="3">
+                <span class="glyphicon glyphicon-filter" aria-hidden="true"></span>
+                Rechercher
+            </button>
+            <button name="reinitialiser_filtre" type="submit" class="reinitialiser btn btn-default btn-sm" title="Réinitialiser" value="4">
+                <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span>
+            </button>
+        </div>
+        <hr />
+        {% if idJournee > 0 and operations[0].journee.validationDemandee %}
+            <em>[En attente de validation]</em>
+        {% endif %}
+        <table class="table table-bordered table-condensed table-striped">
+            <thead>
+                <tr>
+                    <th width="210">Type d'action</th>
+                    <th width="120">Date de réception</th>
+                    <th width="110">N° de Dossier</th>
+                    <th>Cabinet</th>
+                    <th width="120">Catégorie</th>
+                    <th width="110">Statut</th>
+                    <th>Garage</th>
+                    <th width="100">Date Heure</th>
+                    <th>Transmission</th> 
+                    <th colspan="2" class="text-center">Action</th> 
+                    {% if hasOtherUser > 0 %}
+                        <th>Contrôle</th> 
+                        <th width="100">Process</th> 
+                        <th></th> 
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% if idJournee == 0 or not operations[0].journee.validationDemandee %}
+                    <tr>
+                        <td>
+                            <select name="typeAction" class="typeAction form-control input-sm">
+                                {% for typeAction in typeActions %}
+                                    <option value="{{ typeAction.id }}">{{ typeAction.libelle }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td>
+                            <input id="jourReception" type="text" name="jourReception" class="form-control input-sm" value="{{ "now"|date('d/m/Y') }}" placeholder="jj/mm/aaaa" required="true"/>
+                        </td>
+                        <td>
+                            <input type="text" name="numDossier" class="numDossier form-control input-sm" placeholder="N° de Dossier" value="" required="true"/>
+                            <input type="hidden" name="idCabinet" class="idCabinet" value="" />
+                        </td>
+                        <td class="cabinetInfos">
+                            <p class="form-control-static">-</p>
+                        </td>
+                        <td>
+                            <select name="categorie" class="categorie form-control input-sm" required="true">
+                                <option value="0"></option>
+                                {% for categorie in categories %}
+                                    <option value="{{ categorie.id }}">{{ categorie.libelle }}</option>
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td>
+                            <select name="statut" class="statut form-control input-sm" required="true">
+                                <option value="0"></option>
+                                {% for statut in statuts %}
+                                    <option value="{{ statut.id }}">{{ statut.libelle }}</option>   
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td>
+                            <input type="text" name="garage" class="garage form-control input-sm" required="true"/>
+                            <input type="hidden" name="idGarage" class="idgarage" value="0" />
+                        </td>
+                        <td></td>
+                        <td>
+                            <select name="transmission" class="transmission form-control input-sm" required="true">
+                                <option value=""></option>
+                                {% for transmission in transmissions %}
+                                    <option value="{{ transmission.id }}">{{ transmission.libelle }}</option>
+                                {% endfor %}  
+                            </select>
+                        </td> 
+                        <td class="box text-center" width="50">
+                            <button type="button" class="comment btn btn-default btn-sm" title="Commenter">
+                                <span class="glyphicon glyphicon-comment" aria-hidden="true"></span>
+                            </button>
+                            <span class="textAFloat hidden text-left" role="box">
+                                <strong>Commentaire</strong>
+                                <button type="button" class="close" data-dismiss="box" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                <textarea name="commentaireOperation" class="commentaireOperation form-control" required="true"></textarea>
+                            </span>
+                        </td> 
+                        <td class="text-center" width="50">
+                            <button type="button" class="save btn btn-primary btn-sm" title="Enregistrer">
+                                <span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span>
+                            </button>
+                        </td> 
+                        {% if hasOtherUser > 0 %}
+                        <td colspan="3"></td>
+                        {% endif %}
+                    </tr>
+                {% endif %}
+                {% for operation in operations %}
+                    <tr>
+                        <td>
+                            <p class="form-control-static">{{ operation.typeAction.libelle }}</p>
+                            <input type="hidden" name="idOperation" value="{{ operation.id }}" />
+                        </td>
+                        <td><p class="form-control-static text-center">{{ operation.dateReception|date('d/m/Y') }}</p></td>
+                        <td>
+                            <input type="hidden" name="idOperation" class="idOperation" value="{{ operation.id }}" />
+                            <p class="form-control-static">{{ operation.numeroDossier }}</p>
+                        </td>
+                        <td class="cabinetInfos"><p class="form-control-static">{% if operation.cabinet %}<a href="javascript:void(0);" data-cabinet="{{ operation.cabinet.numero }}">{{ operation.cabinet.nom }}</a>{% else %}-{% endif %}</p></td>
+                        <td><p class="form-control-static">{% if operation.categorieAppel %} {{ operation.categorieAppel.libelle }} {% else %}-{% endif %}</p></td>
+                        <td>
+                            <select name='operation[{{operation.id}}][statutOperation]' class="statutOperation form-control input-sm">
+                                {% for statut in operation.typeAction.statuts %}
+                                    {% if operation.categorieAppel and operation.categorieAppel.libelle|lower == "autre" %}
+                                        {% if statut.libelle|lower == "hors proces" %}
+                                            <option value="{{ statut.id }}" selected="selected">{{ statut.libelle }}</option>
+                                        {% endif %}
+                                    {% else %}
+                                        <option value="{{ statut.id }}" {% if operation.statut.id == statut.id %}selected="selected"{% endif %}>{{ statut.libelle }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td><p class="form-control-static">{% if operation.garage %} {{ operation.garage.libelle }}{% else %}-{% endif %}</p></td>
+                        <td><p class="form-control-static text-center">{{ operation.dateHeureTraitement|date('d/m/Y H:i:s') }}</p></td>
+                        <td><p class="form-control-static">{% if operation.transmission %} {{ operation.transmission.libelle }}{% else %}-{% endif %}</p></td>
+                        
+                    {% if operation.operateur.id != app.user.id %}
+                        <input type="hidden" name="operation[{{ operation.id }}][id]" class="idOperation" value="{{ operation.id }}" />
+                        <input type="hidden" name="operation[{{ operation.id }}][journee]" class="idJournee" value="{{ operation.journee.id }}" />
+                        <td>
+                            {% if operation.commentaireOperation|length %}
+                                <p class="form-control-static text-center">
+                                    <a class="comment text-success" role="button" data-toggle="popover" data-trigger="focus hover" title="Commentaire" data-html="true" data-content="{{ operation.commentaireOperation|nl2br }}" data-placement="left">
+                                        <span class="glyphicon glyphicon-comment" aria-hidden="true"></span>
+                                    </a>
+                                </p>
+                            {% endif %}
+                        </td>
+                        <td></td>
+                        <td>
+                            {% set toggleEnable = "" %}
+                            {% if operation.controle %}
+                                {% set toggleEnable = "disabled" %}
+                            {% endif %}
+                            {% if toggleEnable != "" %}
+                                <input type="hidden" name="operation[{{operation.id}}][controle]"  value="{{ operation.controle.id }}" />
+                                <input type="hidden" name="operation[{{ operation.id }}][process]" value="{% if operation.process|length %}{{ operation.process|raw|nl2br }}{% endif %}" />
+                                <input type="hidden" name="operation[{{ operation.id }}][commentaireCtrl]" value="{% if operation.commentaireControle|length %}{{ operation.commentaireControle|raw|nl2br }}{% endif %}" />
+                            {% endif %}
+                            <select name='operation[{{operation.id}}][controle]' {{ toggleEnable }} class="form-control input-sm">
+                                {% for controle in controles %}
+                                    {% if operation.controle %}
+                                        {% if operation.controle.id == controle.id %}
+                                            <option selected value="{{ controle.id }}" >{{ controle.libelle }}</option>
+                                        {% endif %}
+                                    {% else %}
+                                        <option value="{{ controle.id }}" >{{ controle.libelle }}</option>
+                                    {% endif %}    
+                                {% endfor %}
+                            </select>
+                        </td>
+                        <td>
+                            <textarea {{ toggleEnable }} name="operation[{{operation.id}}][process]" class="process form-control">{% if operation.process|length %}{{ operation.process|raw|nl2br }}{% endif %}</textarea>
+                        </td>
+                        <td class="box text-center">
+                            <button type="button" class="commentctrl btn btn-default btn-sm" title="Commenter">
+                                <span class="glyphicon glyphicon-comment" aria-hidden="true"></span>
+                            </button>
+                            <span class="textAFloat hidden text-left" role="box">
+                                <strong>Commentaire</strong>
+                                <button type="button" class="close" data-dismiss="box" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                <textarea {{ toggleEnable }} name="operation[{{operation.id}}][commentaireCtrl]" class="commentaireCtrl form-control">{% if operation.commentaireControle|length %}{{ operation.commentaireControle|raw|nl2br }}{% endif %}</textarea>
+                            </span>
+                        </td>
+                    {% else %}
+                        {% set hasCurrentUser = 1 %}
+                        <td class="box text-center">
+                            <button type="button" class="comment btn btn-{% if operation.commentaireOperation|length %}success{% else %}default{% endif %} btn-sm" title="Commenter">
+                                <span class="glyphicon glyphicon-comment" aria-hidden="true"></span>
+                            </button>
+                            <span class="textAFloat hidden text-left" role="box">
+                                <strong>Commentaire</strong>
+                                <button type="button" class="close" data-dismiss="box" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                                <textarea name="commentaireOperation" class="commentaireOperation form-control"></textarea>
+                                {% if operation.commentaireOperation|length %}
+                                    <span>{{ operation.commentaireOperation|raw|nl2br }}</span>
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <button type="button" class="save-modif btn btn-default btn-sm" title="Enregistrer">
+                                <span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span>
+                                <span class="glyphicon glyphicon-" aria-hidden="true"></span>
+                            </button>
+                        </td>
+                        {% if hasOtherUser > 0 %}
+                        <td colspan="3"></td>
+                        {% endif %}
+                    {% endif %}
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <div class="text-right">
+            {% if idJournee > 0 and not operations[0].journee.validationDemandee and hasCurrentUser > 0 %}
+                <button name="valider_journee" type="submit" class="demander_validation btn btn-success btn-sm" title="Demander validation" value="1">
+                    <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+                    Valider ma journée
+                </button>
+            {% endif %}
+            {% if idJournee > 0 %}
+                {% if app.user.hasRole('ROLE_ADMIN') or app.user.hasRole('ROLE_SUPER_ADMIN') %}
+                <button name="exporter_journee" type="submit" class="exporter btn btn-info btn-sm" title="Exporter" value="2">
+                    <span class="glyphicon glyphicon-export" aria-hidden="true"></span>
+                    Exporter
+                </button>
+                {% endif %}
+            {% endif %}
+            {% if hasOtherUser > 0 and allValidated == 0 %}
+                <button name="valider_controles" type="submit" class="valider_controles btn btn-success btn-sm" title="Valider les contrôles" value="3">
+                    <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+                    Valider les contrôles
+                </button>
+            {% endif %}
+            
+        </div>
+    </form>
+    <div class="associations hidden">
+        <div id="ref_type_action_categorie">
+            {% for typeAction in typeActions %}
+                <p id="{{ typeAction.id }}">{% for categorie in typeAction.categories %}{% if not loop.first %}_{% endif %}{{ categorie.id }}{% endfor %}</p>
+            {% endfor %}
+        </div>
+        <div id="ref_type_action_statut">
+            {% for typeAction in typeActions %}
+                <p id="{{ typeAction.id }}">{% for statut in typeAction.statuts %}{% if not loop.first %}_{% endif %}{{ statut.id }}{% endfor %}</p>
+            {% endfor %}
+        </div>
+        <div id="ref_cabinets">
+            {% for cabinet in cabinets %}
+                <p id="{{ cabinet.numero }}">{{ cabinet.datas }}</p>
+            {% endfor %}
+        </div>
+        <div id="ref_garages">
+            {% for garage in garages %}
+                <p id="{{ garage.libelle }}" data-id="{{ garage.id }}"></p>
+            {% endfor %}
+        </div>
+    </div>
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">Boîte de dialogue</h4>
+            </div>
+            <div class="modal-body">
+                <label>Veuillez remplir les champs vides svp!</label>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Fermer</button>
+            </div>
+        </div>
+    </div>
+</div>
+            
+{% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    <script type="text/javascript">
+        var dataGarages = [];
+        {% for garage in garages %}
+            dataGarages.push("{{ garage.libelle }}");
+        {% endfor %}
+            var url_action = "{{ path('suivi_appelsortant_save') }}";
+            var url_liste = "{{ path('suivi_appel_sortant') }}";
+            var garagesJson = "{{ path('suivi_appel_sortant_garage_json') }}";
+    </script>
+    <script src="{{ asset('bundles/jquery/jquery.maskedinput.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('bundles/typeahead/typeahead.jquery.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('bundles/typeahead/bloodhound.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('bundles/typeahead/typeahead.bundle.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('bundles/suivi/js/suiviappelsortant.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('bundles/jquery/jquery-ui.js') }}" type="text/javascript"></script>
+{% endblock javascripts %}

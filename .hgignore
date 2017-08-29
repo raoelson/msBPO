@@ -1,0 +1,11 @@
+\.orig$
+\.orig\..*$
+\.chg\..*$
+\.rej$
+\.conflict\~$
+syntax: glob
+*.md
+app/cache
+app/logs
+nbproject
+*.php~

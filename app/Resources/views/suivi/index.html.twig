@@ -1,0 +1,215 @@
+{% extends '::front.html.twig' %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('bundles/suivi/css/style.css') }}" type="text/css" />
+    <link rel="stylesheet" href="{{ asset('bundles/jquery/css/jquery-ui.css') }}" type="text/css" />
+{% endblock %}
+
+{% block contenu %}
+    {{ parent() }}
+    {% set idJournee = 0 %}
+    {% if operations|length %}
+        {% set idJournee = operations[0].journee.id %}
+    {% endif %}
+    <h1>
+        Expertise Auto {% if idJournee > 0 %}{{ operations[0].journee.dateOperation|date('d/m/Y') }}{% else %}{{ "now"|date('d/m/Y') }}{% endif %}
+    </h1>
+    <form name="suivi" method="POST">
+        <input type="hidden" name="idJournee" class="idJournee" value="{{ idJournee }}" />
+        <div class="filtre form-inline">
+            <input type="text" id="filtre_date" name="filtre_date" class="form-control input-sm" placeholder="Date des opérations" value="{% if filtre.date is defined %}{{ filtre.date }}{% else %}{{ "now"|date("d/m/Y") }}{% endif %}" />
+            {% if app.user.hasRole('ROLE_ADMIN') or app.user.hasRole('ROLE_SUPER_ADMIN') %}
+            <select name="filtre_agent" class="form-control input-sm" placeholder="Agent">
+                <option value="0">Sélectionner un agent</option>
+                {% for agent in agents %}
+                    {% if not agent.hasRole('ROLE_SUPER_ADMIN') %}
+                <option value="{{ agent.id }}"{% if filtre.agent is defined and filtre.agent == agent.id %} selected="selected"{% endif %}>{{ agent.username }}</option>
+                    {% endif %}
+                {% endfor %}
+            </select>
+            <select name="filtre_cabinet" class="form-control input-sm" placeholder="Cabinet">
+                <option value="0">Sélectionner un cabinet</option>
+                {% for cabinet in cabinets %}
+                <option value="{{ cabinet.id }}"{% if filtre.cabinet is defined and filtre.cabinet == cabinet.id %} selected="selected"{% endif %}>{{ cabinet.numero ~ " - " ~ cabinet.nom }}
+                </option>
+                {% endfor %}
+            </select>
+            <select name="filtre_interlocuteur" class="form-control input-sm" placeholder="Interlocuteur">
+                <option value="0">Sélectionner un interlocuteur</option>
+                {% for interlocuteur in interlocuteurs %}
+                <option value="{{ interlocuteur.id }}"{% if filtre.interlocuteur is defined and filtre.interlocuteur == interlocuteur.id %} selected="selected"{% endif %}>{{ interlocuteur.libelle }}</option>
+                {% endfor %}
+            </select>
+            <select name="filtre_document" class="form-control input-sm" placeholder="Document" style="width: 300px;">
+                <option value="0">Sélectionner un type de document</option>
+                {% for document in documents %}
+                <option value="{{ document.id }}"{% if filtre.document is defined and filtre.document == document.id %} selected="selected"{% endif %}>{{ document.documentType }}</option>
+                {% endfor %}
+            </select>
+            {% endif %}
+            <button name="filtrer_journee" type="submit" class="filtrer btn btn-default btn-sm" title="Filtrer" value="3">
+                <span class="glyphicon glyphicon-filter" aria-hidden="true"></span>
+                Rechercher
+            </button>
+            <button name="reinitialiser_filtre" type="submit" class="reinitialiser btn btn-default btn-sm" title="Réinitialiser" value="4">
+                <span class="glyphicon glyphicon-refresh" aria-hidden="true"></span>
+            </button>
+        </div>
+        <hr />
+        {% if idJournee > 0 and operations[0].journee.validationDemandee %}
+        <em>[En attente de validation]</em>
+        {% endif %}
+        <table class="table table-bordered table-condensed table-striped">
+            <thead>
+                <tr>
+                    <th>N&deg; Dossier</th>
+                    <th>Cabinet</th>
+                    <th>Type d'action</th>
+                    <th>Statut</th>
+                    <th>Référence NT</th>
+                    <th>Type d'interlocuteur</th>
+                    <th width="300">Document à traiter</th>
+                    <th>Jour de réception</th>
+                    <th>Heure de réception</th>
+{#                    <th>Heure de traitement</th>#}
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if idJournee == 0 or not operations[0].journee.validationDemandee %}
+                <tr>
+                    <td>
+                        <input type="text" name="numDossier" class="numDossier form-control input-sm" value="" />
+                        <input type="hidden" name="idCabinet" class="idCabinet" value="" />
+                    </td>
+                    <td class="cabinetInfos"><p class="form-control-static">-</p></td>
+                    <td>
+                        <select name="typeAction" class="typeAction form-control input-sm">
+                            <option value="0"></option>
+                            {% for typeAction in typeActions %}
+                                <option value="{{ typeAction.id }}">{{ typeAction.libelle }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td>
+                        <select name="statut" class="statut form-control input-sm">
+                            <option value="0"></option>
+                            {% for statut in statuts %}
+                                <option value="{{ statut.id }}" class="hidden">{{ statut.libelle }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td><input type="text" name="refNT" class="refNT form-control input-sm" value="" /></td>
+                    <td>
+                        <select name="interlocuteur" class="interlocuteur form-control input-sm">
+                            <option value="0"></option>
+                            {% for interlocuteur in interlocuteurs %}
+                                <option value="{{ interlocuteur.id }}">{{ interlocuteur.libelle }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td>
+                        <select name="document" class="document form-control input-sm">
+                            <option value="0"></option>
+                            {% for document in documents %}
+                                <option value="{{ document.id }}" class="hidden">{{ document.documentType }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td>
+                        <select name="jourReception" class="jourReception form-control input-sm">
+                            {% for key, value in joursReception %}
+                                <option value="{{ key }}">{{ value }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td><input type="time" name="hRecpt" class="hRecpt form-control input-sm" /></td>
+{#                    <td><input type="time" name="hTtmt" class="hTtmt form-control input-sm" /></td>#}
+                    <td class="box">
+                        <button type="button" class="comment btn btn-default btn-sm" title="Commenter">
+                            <span class="glyphicon glyphicon-comment" aria-hidden="true"></span>
+                        </button>
+                        <span class="textAFloat hidden" role="box">
+                            <strong>Commentaire</strong>
+                            <button type="button" class="close" data-dismiss="box" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                            <textarea name="commentaireOperation" class="commentaireOperation form-control"></textarea>
+                        </span>
+                        <button type="button" class="save btn btn-default btn-primary btn-sm" title="Enregistrer">
+                            <span class="glyphicon glyphicon-floppy-save" aria-hidden="true"></span>
+                        </button>
+                    </td>
+                </tr>
+                {% endif %}
+                {% for operation in operations %}
+                <tr>
+                    <td>
+                        <input type="hidden" name="idOperation" class="idOperation" value="{{ operation.id }}" />
+                        <p class="form-control-static">{{ operation.numeroDossier }}</p>
+                    </td>
+                    <td class="cabinetInfos"><p class="form-control-static">{% if operation.cabinet %}<a href="javascript:void(0);" data-cabinet="{{ operation.cabinet.numero }}">{{ operation.cabinet.nom }}</a>{% else %}-{% endif %}</p></td>
+                    <td><p class="form-control-static">{{ operation.typeAction.libelle }}</p></td>
+                    <td><p class="form-control-static">{{ operation.statut.libelle }}</p></td>
+                    <td><p class="form-control-static">{{ operation.referenceNT }}</p></td>
+                    <td><p class="form-control-static">{%if operation.interlocuteur %}{{ operation.interlocuteur.libelle }}{% endif %}</p></td>
+                    <td><p class="form-control-static">{%if operation.document %}{{ operation.document.documentType }}{% endif %}</p></td>
+                    <td><p class="form-control-static text-center">{{ operation.dateReception|date('d/m/Y') }}</p></td>
+                    <td><p class="form-control-static text-center">{{ operation.heureReception|date('H:i') }}</p></td>
+{#                    <td><p class="form-control-static text-center">{{ operation.heureTraitement|date('H:i') }}</p></td>#}
+                    <td>
+                        {% if operation.commentaireOperation|length %}
+                        <p class="form-control-static text-center">
+                            <a class="comment text-success" role="button" data-toggle="popover" data-trigger="focus hover" title="Commentaire" data-content="{{ operation.commentaireOperation }}" data-placement="left">
+                            <span class="glyphicon glyphicon-comment" aria-hidden="true"></span>
+                            </a>
+                        </p>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="text-right">
+            {% if idJournee > 0 and not operations[0].journee.validationDemandee %}
+            <button name="valider_journee" type="submit" class="demander_validation btn btn-success btn-sm" title="Demander validation" value="1">
+                <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
+                Valider ma journée
+            </button>
+            {% endif %}
+            {% if idJournee > 0 %}
+            <button name="exporter_journee" type="submit" class="exporter btn btn-info btn-sm" title="Exporter" value="2">
+                <span class="glyphicon glyphicon-export" aria-hidden="true"></span>
+                Exporter
+            </button>
+            {% endif %}
+        </div>
+    </form>
+    <div class="associations hidden">
+        <div id="ref_cabinets">
+            {% for cabinet in cabinets %}
+                <p id="{{ cabinet.numero }}">{{ cabinet.datas }}</p>
+            {% endfor %}
+        </div>
+        <div id="ref_type_action_statut">
+            {% for typeAction in typeActions %}
+                <p id="{{ typeAction.id }}">{% for statut in typeAction.statuts %}{% if not loop.first %}_{% endif %}{{ statut.id }}{% endfor %}</p>
+            {% endfor %}
+        </div>
+        <div id="ref_interlocuteur_document">
+            {% for interlocuteur in interlocuteurs %}
+                <p id="{{ interlocuteur.id }}">{% for document in interlocuteur.documents %}{% if not loop.first %}_{% endif %}{{ document.id }}{% endfor %}</p>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script type="text/javascript">
+        var url_action = "{{ path('suivi_enregistrer') }}";
+        var url_liste = "{{ path('suivi') }}";
+    </script>
+    <script src="{{ asset('bundles/jquery/jquery.maskedinput.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('bundles/jquery/jquery-ui.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('bundles/suivi/js/script.js') }}" type="text/javascript"></script>
+{% endblock %}

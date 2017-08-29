@@ -1,0 +1,20 @@
+{% extends '::front.html.twig' %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('bundles/admin/css/style.css') }}" type="text/css" />
+{% endblock %}
+
+{% block contenu %}
+    <ul class="nav nav-pills">
+        <li role="presentation" class="pave"><a href="{{ path("admin_utilisateurs") }}" class="text-center">Gestion des utilisateurs</a></li>
+        <li role="presentation" class="pave"><a href="{{ path('admin_cabinets') }}" class="text-center">Référentiel <strong>Cabinet</strong></a></li>
+        <li role="presentation" class="pave"><a href="{{ path('admin_typeactions') }}" class="text-center">Référentiel <strong>Type d'action</strong>, <strong>statut</strong> et  <strong>catégorie d'appel</strong></a></li>
+        <li role="presentation" class="pave"><a href="{{ path('admin_interlocuteurs') }}" class="text-center">Référentiel <strong>Type d'interlocuteur</strong> et <strong>documents</strong></a></li>
+        <li role="presentation" class="pave"><a href="{{ path('admin_controles') }}" class="text-center">Référentiel <strong>Contrôle</strong></a></li>
+        <li role="presentation" class="pave"><a href="{{ path('admin_garages') }}" class="text-center">Référentiel <strong>Garage</strong></a></li>
+        <li role="presentation" class="pave"><a href="{{ path('admin_transmissions') }}" class="text-center">Référentiel <strong>Transmission</strong></a></li>
+        <li role="presentation" class="pave"><a href="{{ path('admin_statut') }}" class="text-center">Référentiel <strong>Statut</strong></a></li>
+        <li role="presentation" class="pave"><a href="{{ path('admin_categorie') }}" class="text-center">Référentiel <strong>Catégorie</strong></a></li>
+    </ul>
+{% endblock %}

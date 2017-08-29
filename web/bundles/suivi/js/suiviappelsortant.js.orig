@@ -1,0 +1,213 @@
+$('document').ready(function () {
+    toggle_categorie();
+    $(function () {
+<<<<<<< local
+        $("#filtre_date").datepicker({dateFormat: 'dd/mm/yy'});
+    });   
+=======
+        $("#filtre_date").datepicker({
+            dateFormat: 'dd/mm/yy',
+            closeText: 'Fermer',
+            prevText: 'Précédent',
+            nextText: 'Suivant',
+            currentText: 'Aujourd\'hui',
+            monthNames: ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'],
+            monthNamesShort: ['Janv.', 'Févr.', 'Mars', 'Avril', 'Mai', 'Juin', 'Juil.', 'Août', 'Sept.', 'Oct.', 'Nov.', 'Déc.'],
+            dayNames: ['Dimanche', 'Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'],
+            dayNamesShort: ['Dim.', 'Lun.', 'Mar.', 'Mer.', 'Jeu.', 'Ven.', 'Sam.'],
+            dayNamesMin: ['Di', 'Lu', 'Ma', 'Me', 'Je', 'Ve', 'Sa'],
+            weekHeader: 'Sem.',
+        });
+    });
+>>>>>>> other
+});
+
+$('select.categorie').change(function () {
+    toggle_statut();
+});
+$('select.typeAction').change(function () {
+    toggle_categorie();
+});
+
+toggle_categorie = function () {
+    var $selected = $("select.typeAction");
+    var text = $("option:selected", $selected).text();
+    $("select.categorie").prop('disabled', true);
+    $("select.categorie").val("");
+    if (text.toLowerCase().indexOf("situation") >= 0) {
+        $("select.categorie").prop('disabled', false);
+    }
+    toggle_statut();
+};
+
+toggle_statut = function () {
+    var $selected = $("select.categorie");
+    var text = $("option:selected", $selected).text();
+    var statutsobj = {};
+    var thbody = "";
+    $("select.statut-temp option").each(function () {
+        statutsobj[$(this).val()] = $(this).text();
+    });
+    $('select.statut').children('option').remove();
+    if (text.toLowerCase().indexOf("autre") >= 0) {
+        $.each(statutsobj, function (index, value) {
+            if (value.toString().toLowerCase().indexOf("hors process") >= 0) {
+                thbody += "<option value='" + index + "'> " + value + " </option>";
+            }
+        });
+    } else {
+        $.each(statutsobj, function (index, value) {
+            if (value.toString().toLowerCase().indexOf("ouvert") >= 0) {
+                thbody += "<option selected value='" + index + "'> " + value + " </option>";
+            } else {
+                thbody += "<option value='" + index + "'> " + value + " </option>";
+            }
+        });
+    }
+    $('select.statut').append(thbody);
+};
+
+$('.numDossier').blur(function () {
+    $(this).closest('tr').find('td.cabinetInfos').html("-");
+    $('.idCabinet').val("");
+    var numeroDossier = $(this).val();
+    if (numeroDossier.length) {
+        var numeroCabinet = numeroDossier.substring(0, 3);
+        if ($.trim($('.associations #ref_cabinets p#' + numeroCabinet).text()).length) {
+            var infosCabinet = $.trim($('.associations #ref_cabinets p#' + numeroCabinet).text()).split('##');
+            $('.idCabinet').val(infosCabinet[infosCabinet.length - 1]);
+            var linkInfoCabinet = $('<p class="form-control-static"><a href="javascript:void(0);">' + infosCabinet[1] + '</a></p>');
+            $(this).closest('tr').find('td.cabinetInfos').html(linkInfoCabinet);
+        }
+    }
+});
+
+var serializer = function () {
+    var data = "idJournee=" + $('input.idJournee').val();
+    var sep = "&";
+    $('tbody tr:first').find('input').map(function () {
+        data += sep + $(this).attr('name') + '=' + $(this).val();
+    });
+    $('tbody tr:first').find('select').map(function () {
+        data += sep + $(this).attr('name') + '=' + $(this).val();
+    });
+    $('tbody tr:first').find('textarea').map(function () {
+        data += sep + $(this).attr('name') + '=' + $(this).val();
+    });
+    return data;
+};
+
+$('.save').click(function () {
+    var obj = $(this);
+    obj.blur();
+    obj.addClass("disabled");
+
+    var data = serializer();
+    $.ajax({
+            url: url_action,
+            data: data,
+            type: "POST",
+            success: function (resultat) {                
+                obj.removeClass("disabled");
+                if (resultat === "1") {
+                    window.location = url_liste;
+                } else {
+                    alert(resultat);
+                }
+            },
+            error: function () {
+                obj.removeClass("disabled");
+            }
+        });
+});
+
+$('.textAFloat button.close').click(function () {
+    $(this).closest('.textAFloat').addClass('hidden');
+});
+
+$('button.comment').off('click').on('click', function () {
+    $(this).closest('td.box').find('span.textAFloat').removeClass('hidden');
+});
+
+$('.textAFloat button.close').click(function () {
+    $(this).closest('.textAFloat').addClass('hidden');
+});
+
+$('button.commentctrl').off('click').on('click', function () {
+    $(this).closest('td.box').find('span.textAFloat').removeClass('hidden');
+});
+
+$(function () {
+    $('[data-toggle="popover"]').popover();
+});
+
+$("input.jourReception").mask("99/99/9999", {placeholder: "__/__/____"});
+
+var garages = new Bloodhound({
+    datumTokenizer: Bloodhound.tokenizers.whitespace,
+    queryTokenizer: Bloodhound.tokenizers.whitespace,
+    prefetch: garagesJson
+});
+
+$('input.garage').typeahead(null, {
+    name: 'garages',
+    source: garages
+});
+
+$('input.garage').blur(function () {
+    var lib = $(this).val();
+    var id = 0;
+    if ($('.associations #ref_garages p[id=' + lib + ']').length) {
+        id = $('.associations #ref_garages p[id=' + lib + ']').attr('data-id');
+    }
+    $(this).closest('td').find('input.idgarage').val(id);
+});
+
+
+$('.save-modif').click(function () {
+    var obj = $(this);
+    obj.blur();
+    obj.addClass("disabled");
+
+    var data = "edit=1&id=" + $(this).closest('tr').find('input[name=idOperation]').val() + "&statut=" + $(this).closest('tr').find('select[name=statutOperation]').val() + "&commentaire=" + $(this).closest('tr').find('textarea[name=commentaireOperation]').val();
+    $.ajax({
+        url: url_action,
+        data: data,
+        type: "POST",
+        success: function (resultat) {
+            obj.removeClass("disabled");
+            if (resultat === "1") {
+                window.location = url_liste;
+            } else {
+                alert(resultat);
+            }
+        },
+        error: function () {
+            obj.removeClass("disabled");
+        }
+    });
+});
+
+$(document).off('mouseover', 'td.cabinetInfos a').on('mouseover', 'td.cabinetInfos a', function () {
+    showInfo($(this));
+});
+
+var showInfo = function (obj) {
+    var numCab = obj.attr('data-cabinet');
+    var dataCab = $.trim($('.associations #ref_cabinets p#' + numCab).text()).split('##');
+    var contenu = '<table class="table table-bordered table-condensed"><tr><th>Nom :</th><td>' + dataCab[1] + '</td><th>Numéro standard téléphonique :</th><td>' + dataCab[6] + '</td></tr>'
+            + '<tr><th>Rue</th><td>' + dataCab[2] + '</td><th>Numéro ligne rouge</th><td>' + dataCab[7] + '</td></tr>'
+            + '<tr><th>Code postal</th><td>' + dataCab[3] + '</td><th>Numéro fax</th><td>' + dataCab[8] + '</td></tr>'
+            + '<tr><th>Ville</th><td>' + dataCab[4] + '</td><th>Email</th><td>' + dataCab[5] + '</td></tr>'
+            + '<tr><th>Permanence téléphonique</th><td>' + dataCab[9] + '</td><th>Equipe expert</th><td>' + dataCab[11] + '</td></tr>'
+            + '<tr><th>Permanence expertise</th><td>' + dataCab[10] + '</td><th>Equipe assistante</th><td>' + dataCab[12] + '</td></tr></table>';
+    obj
+            .popover({
+                title: 'Infos <b>Cabinet ' + dataCab[0] + '</b>',
+                content: contenu,
+                trigger: 'hover',
+                html: true
+            })
+            .popover('show');
+};
+$("input#filtre_date").mask("99/99/9999", {placeholder: "__/__/____"});

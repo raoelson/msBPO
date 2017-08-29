@@ -1,0 +1,53 @@
+{% extends '::front.html.twig' %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('bundles/admin/css/style.css') }}" type="text/css" />
+    <link rel="stylesheet" href="{{ asset('bundles/admin/css/cabinet.css') }}" type="text/css" />
+{% endblock %}
+
+{% block contenu %}
+    <h1>
+        Nouveau cabinet
+    </h1>
+    {{ form_start(form) }}
+    <div class="col-sm-6">
+        {{ form_label(form.numero) }}
+        {{ form_widget(form.numero) }}
+        {{ form_label(form.nom) }}
+        {{ form_widget(form.nom) }}
+        {{ form_label(form.rue) }}
+        {{ form_widget(form.rue) }}
+        {{ form_label(form.codePostal) }}
+        {{ form_widget(form.codePostal) }}
+        {{ form_label(form.ville) }}
+        {{ form_widget(form.ville) }}
+    </div>
+    <div class="col-sm-6">
+        {{ form_label(form.numeroStdPhone) }}
+        {{ form_widget(form.numeroStdPhone) }}
+        {{ form_label(form.numeroLgRouge) }}
+        {{ form_widget(form.numeroLgRouge) }}
+        {{ form_label(form.numeroFax) }}
+        {{ form_widget(form.numeroFax) }}
+        {{ form_label(form.email) }}
+        {{ form_widget(form.email) }}
+    </div>
+    <div class="clearfix"></div>
+    <div class="col-sm-6">
+        {{ form_label(form.permanencePhone) }}
+        {{ form_widget(form.permanencePhone) }}
+        {{ form_label(form.permanenceExpert) }}
+        {{ form_widget(form.permanenceExpert) }}
+        <br />
+        <button type="submit" name="enregsitrer" class="btn btn-primary">Enregsitrer</button>
+    </div>
+    <div class="col-sm-6">
+        {{ form_label(form.equipeExpert) }}
+        {{ form_widget(form.equipeExpert) }}
+        {{ form_label(form.equipeAssistante) }}
+        {{ form_widget(form.equipeAssistante) }}
+        {{ form_rest(form) }}
+    </div>
+    {{ form_end(form) }}
+{% endblock %}

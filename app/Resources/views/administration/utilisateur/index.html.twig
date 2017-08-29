@@ -1,0 +1,81 @@
+{% extends '::front.html.twig' %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('bundles/admin/css/style.css') }}" type="text/css" />
+{% endblock %}
+
+{% block contenu %}
+    <h1>
+        Liste des utilisateurs
+        <a href="{{ path("admin_utilisateur_ajouter") }}" title="Ajouter un nouvel utilisateur"><i class="glyphicon glyphicon-plus"></i></a>
+    </h1>
+    <table class="table table-bordered table-condensed table-striped">
+        <thead>
+            <tr>
+                <th>Identifiant</th>
+                <th>Nom et prénom</th>
+                <th>Activé</th>
+                <th>Type</th>
+                <th>Date de dernière connexion</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        <div class="filtre form-inline">
+            <form method="post">
+                <select name="filtre_active" class="form-control input-sm" placeholder="état">
+                    <option value="">Sélectionner état</option>
+                    <option value="1">Activé</option>
+                    <option value="2">Désactivé</option>
+                </select>
+                <button type="submit" class="filtrer btn btn-default btn-sm" title="Filtrer">
+                    <span class="glyphicon glyphicon-filter" aria-hidden="true"></span>
+                    Rechercher
+                </button>
+
+            </form>
+        </div>
+        <hr />
+            {% for utilisateur in utilisateurs %}
+            <tr>
+                <td>{{ utilisateur.username }}</td>
+                <td>{{ utilisateur.nom }}</td>
+                <td><i class="glyphicon glyphicon-{% if utilisateur.enabled %}ok{% else %}ban{% endif %}-circle text-{% if utilisateur.enabled %}success{% else %}danger{% endif %}"></i></td>
+                <td>{% if "ROLE_SUPER_ADMIN" in utilisateur.roles or "ROLE_ADMIN" in utilisateur.roles %}ADMIN{% else %}USER{% endif %}</td>
+                <td>{% if utilisateur.lastLogin is not null %}{{ utilisateur.lastLogin|date("d-m-Y H:i:s") }}{% endif %}</td>
+                <td>
+                    <a href="{{ path("admin_utilisateur_modifier", {"idUtilisateur": utilisateur.id}) }}"><i class="glyphicon glyphicon-pencil"></i></a>
+                    {% if app.user.id != utilisateur.id and utilisateur.enabled %}
+                    <a href="{{ path("admin_utilisateur_supprimer", {"idUtilisateur": utilisateur.id}) }}" class="text-danger" data-confirm="Etes-vous certain de vouloir désactiver?"><i class="glyphicon glyphicon-remove"></i></a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6">Aucun utilisateur</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    <script type="text/javascript">
+    $(function() {
+	$('a[data-confirm]').click(function(ev) {
+		var href = $(this).attr('href');
+		
+		if (!$('#dataConfirmModal').length) {
+			$('body').append('<div id="dataConfirmModal" class="modal" role="dialog" aria-labelledby="dataConfirmLabel" aria-hidden="true"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button><h3 id="dataConfirmLabel">Merci de confirmer</h3></div><div class="modal-body"></div><div class="modal-footer"><button class="btn" data-dismiss="modal" aria-hidden="true">Non</button><a class="btn btn-danger" id="dataConfirmOK">Oui</a></div></div></div></div>');
+		}
+		$('#dataConfirmModal').find('.modal-body').text($(this).attr('data-confirm'));
+		$('#dataConfirmOK').attr('href', href);
+		$('#dataConfirmModal').modal({show:true});
+		
+		return false;
+	});
+    });
+    </script>
+    
+{% endblock javascripts %}

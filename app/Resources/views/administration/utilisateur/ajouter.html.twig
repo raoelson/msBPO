@@ -1,0 +1,39 @@
+{% extends '::front.html.twig' %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('bundles/admin/css/style.css') }}" type="text/css" />
+{% endblock %}
+
+{% block contenu %}
+    <h1>
+        Nouvel utilisateur
+    </h1>
+    {{ form_start(form) }}
+    
+    {{ form_label(form.nom) }}
+    {{ form_widget(form.nom) }}
+    {{ form_label(form.email) }}
+    {{ form_widget(form.email) }}
+    {{ form_label(form.username) }}
+    {{ form_widget(form.username) }}
+    {{ form_label(form.password) }}
+    {{ form_widget(form.password) }}
+    <label>Confirmer mot de passe</label>
+    <input type="password" name="confirmpwd" class="form-control" value="" />
+    
+    <label class="required" for="type">Type</label>
+    <select id="type" name="type" class="form-control" required="required">
+        <option value="ROLE_ADMIN">ADMIN</option>
+        <option value="ROLE_USER">USER</option>
+    </select>
+    <label>
+        {{ form_widget(form.enabled) }}
+        Activé
+    </label>
+    
+    {{ form_rest(form) }}
+    <br />
+    <button type="submit" name="enregsitrer" class="btn btn-primary">Enregsitrer</button>
+    {{ form_end(form) }}
+{% endblock %}

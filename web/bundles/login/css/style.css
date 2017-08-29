@@ -1,0 +1,30 @@
+div#connexion {
+    border: 1px solid #ddd;
+    border-radius: 9px;
+    min-height: 275px;
+    left: 50%;
+    margin-left: -162.5px;
+    margin-top: -137.5px;
+    padding-bottom: 15px;
+    padding-left: 15px;
+    padding-right: 15px;
+    position: absolute;
+    top: 50%;
+    width: 325px;
+}
+a.connexion {
+    text-decoration: none;
+    display: block;
+}
+a.connexion span {
+    display: inline-block;
+    font-size: 50px;
+    font-weight: bold;
+    line-height: 74px;
+    padding-top: 0;
+    position: absolute;
+    top: -4px;
+}
+a.connexion img {
+    margin-left: 110px;
+}

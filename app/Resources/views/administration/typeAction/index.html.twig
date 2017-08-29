@@ -1,0 +1,80 @@
+{% extends '::front.html.twig' %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('bundles/admin/css/style.css') }}" type="text/css" />
+    <link rel="stylesheet" href="{{ asset('bundles/select2/select2.css') }}" type="text/css" />
+{% endblock %}
+
+{% block contenu %}
+    <h1>
+        Types d'actions, statuts et catégories d'appel
+    </h1>
+    <table class="table table-bordered table-condensed table-striped">
+        <thead>
+            <tr>
+                <th width="30%">Type d'action</th>
+                <th width="25%">Statuts</th>
+                <th width="25%">Catégories d'appel</th>
+                <th width="25%">Transmissions</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><input type="text" name="libelle" class="libelle form-control" placeholder="Libellé du type d'action" /></td>
+                <td><input type="hidden" name="statuts" class="statuts" style="width: 100%;" /></td>
+                <td><input type="hidden" name="categories" class="categories" style="width: 100%;" /></td>
+                <td><input type="hidden" name="transmissions" class="transmissions" style="width: 100%;" /></td>
+                <td>
+                    <button type="button" class="save btn btn-default btn-primary" title="Enregistrer">
+                        <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+                    </button>
+                </td>
+            </tr>
+            {% for typeAction in typeActions %}
+                <tr>
+                    <td>
+                        <input type="hidden" name="id" class="id" value="{{ typeAction.id }}" />
+                        <input type="text" name="libelle" class="libelle form-control" placeholder="Libellé du type d'action" value="{{ typeAction.libelle }}" />
+                    </td>
+                    <td><input type="hidden" name="statuts" class="statuts" style="width: 100%;" value="{{ typeAction.statutsLibelle }}" /></td>
+                    <td><input type="hidden" name="categories" class="categories" style="width: 100%;" value="{{ typeAction.categoriesLibelle }}" /></td>
+                    <td><input type="hidden" name="transmissions" class="transmissions" style="width: 100%;" value="{{ typeAction.transmissionsLibelle }}" /></td>
+                    <td>
+                        <button type="button" class="edit btn btn-default" title="Enregistrer">
+                            <span class="glyphicon glyphicon-floppy-disk" aria-hidden="true"></span>
+                        </button>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}
+{% block javascripts %}
+    {{ parent() }}
+    <script type="text/javascript">
+        var url_index_type_action = "{{ path("admin_typeactions") }}";
+        var url_ajout_type_action = "{{ path("admin_typeaction_ajouter") }}";
+        var url_modification_type_action = "{{ path("admin_typeaction_modifier", {'idTypeAction': 'idTypeAction'}) }}";
+        
+        var dataStatuts = [];
+        {% for libelle in statuts %}
+            dataStatuts.push("{{ libelle }}");
+        {% endfor %}
+            
+            var dataCategories = [];
+        {% for libelle in categories %}
+            dataCategories.push("{{ libelle }}");
+        {% endfor %}
+            
+            var dataTransmissions = [];
+        {% for libelle in transmissions %}
+            dataTransmissions.push("{{ libelle }}");
+        {% endfor %}
+    </script>
+    <script src="{{ asset('bundles/select2/select2.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('bundles/select2/select2_locale_fr.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('bundles/admin/js/script.js') }}" type="text/javascript"></script>
+    <script src="{{ asset('bundles/admin/js/typeaction.js') }}" type="text/javascript"></script>
+{% endblock %}

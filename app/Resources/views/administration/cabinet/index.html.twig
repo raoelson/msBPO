@@ -1,0 +1,43 @@
+{% extends '::front.html.twig' %}
+{% block title %}{{ parent() }} | Cabinet{% endblock %}
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('bundles/admin/css/style.css') }}" type="text/css" />
+    <link rel="stylesheet" href="{{ asset('bundles/admin/css/cabinet.css') }}" type="text/css" />
+{% endblock %}
+
+{% block contenu %}
+    <h1>
+        Liste des cabinets
+        <a href="{{ path("admin_cabinet_ajouter") }}" title="Ajouter un nouveau cabinet"><i class="glyphicon glyphicon-plus"></i></a>
+    </h1>
+    <table class="table table-bordered table-condensed table-striped">
+        <thead>
+            <tr>
+                <th>Numéro</th>
+                <th>Nom</th>
+                <th>Code postal</th>
+                <th>Ville</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cabinet in cabinets %}
+            <tr>
+                <td>{{ cabinet.numero }}</td>
+                <td>{{ cabinet.nom }}</td>
+                <td>{{ cabinet.codePostal }}</td>
+                <td>{{ cabinet.ville }}</td>
+                <td>
+                    <a href="{{ path("admin_cabinet_modifier", {"idCabinet": cabinet.id}) }}"><i class="glyphicon glyphicon-pencil"></i></a>
+                    <a href="{{ path("admin_cabinet_supprimer", {"idCabinet": cabinet.id}) }}" class="text-danger"><i class="glyphicon glyphicon-remove"></i></a>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5">Aucun cabinet</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

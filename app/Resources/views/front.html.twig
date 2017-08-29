@@ -1,0 +1,62 @@
+{% extends '::base.html.twig' %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <link rel="stylesheet" href="{{ asset('bundles/front/css/style.css') }}" type="text/css" />
+{% endblock %}
+
+{% block body %}
+    <nav class="navbar navbar-default navbar-static-top">
+        <div class="container-fluid">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="collapsable-bar" aria-expanded="false">
+                    <span class="sr-only">Toggle</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="#">
+                    BPO
+                    <img src="{{ asset('bundles/images/nacre.png') }}" alt="logo" />
+                </a>
+            </div>
+            
+            <div class="collapse navbar-collapse" id="collapsable-bar">
+                <ul class="nav navbar-nav">
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Suivi et validation <span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="{{ path("suivi") }}">Suivi</a></li>
+                            <li><a href="{{ path("suivi_appel_sortant") }}">Suivi Appel sortant</a></li>
+                            <li role="separator" class="divider"></li>
+                            <li><a href="{{ path('validation') }}">Validation</a></li>
+                        </ul>
+                    </li>
+                    {% if is_granted("ROLE_ADMIN") %}
+                    <li class="dropdown">
+                        <a href="{{ path("admin_homepage") }}" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">Administration <span class="caret"></span></a>
+                        <ul class="dropdown-menu">
+                            <li><a href="{{ path("admin_utilisateurs") }}">Gestion des utilisateurs</a></li>
+                            <li role="separator" class="divider"></li>
+                            <li><a href="{{ path('admin_cabinets') }}">Référentiel <strong>Cabinet</strong></a></li>
+                            <li><a href="{{ path('admin_typeactions') }}">Référentiel <strong>Type d'action</strong>, <strong>statut</strong> et  <strong>catégorie d'appel</strong></a></li>
+                            <li><a href="{{ path('admin_interlocuteurs') }}">Référentiel <strong>Type d'interlocuteur</strong> et <strong>documents</strong></a></li>
+                            <li><a href="{{ path('admin_controles') }}">Référentiel <strong>Contrôle</strong></a></li>
+                            <li><a href="{{ path('admin_garages') }}">Référentiel <strong>Garage</strong></a></li>
+                            <li><a href="{{ path('admin_transmissions') }}">Référentiel <strong>Transmission</strong></a></li>
+                            <li><a href="{{ path('admin_statut') }}">Référentiel <strong>Statut</strong></a></li>
+                            <li><a href="{{ path('admin_categorie') }}">Référentiel <strong>Catégorie</strong></a></li>
+                        </ul>
+                    </li>
+                    {% if app.request.attributes.get('_route') starts with "admin_cabinet_" %}<li><a href="{{ path("admin_cabinets") }}">Liste des cabinets</a></li>{% endif %}
+                    {% if app.request.attributes.get('_route') starts with "admin_utilisateur_" %}<li><a href="{{ path("admin_utilisateurs") }}">Liste des utilisateurs</a></li>{% endif %}
+                    {% endif %}
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    <li><a href="{{ path('fos_user_security_logout') }}">Déconnexion</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+    <div class="container-fluid">{% block contenu %}{% endblock %}</div>
+{% endblock %}
